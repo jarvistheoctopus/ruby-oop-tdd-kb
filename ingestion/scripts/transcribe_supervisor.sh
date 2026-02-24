@@ -34,13 +34,21 @@ while true; do
     running=$(pgrep -af 'transcribe_supervisor.sh|transcribe_all_courses.sh' | wc -l || true)
     full=$(find "$STATE_DIR" -type f -name '*.full.transcript.txt' 2>/dev/null | wc -l)
     chunks=$(find "$STATE_DIR" -type f -name '*.chunk*.transcript.txt' 2>/dev/null | wc -l)
-    echo "[$(date -Is)] check-in: base=$BASE mounted=$(mountpoint -q "$BASE" && echo yes || echo no) procs=$running full=$full chunks=$chunks" | tee -a "$CHECKIN_LOG" >> "$LOG"
+    mounted="unknown"
+    if command -v mountpoint >/dev/null 2>&1; then
+      mountpoint -q "$BASE" && mounted="yes" || mounted="no"
+    fi
+    echo "[$(date -Is)] check-in: base=$BASE mounted=$mounted procs=$running full=$full chunks=$chunks" | tee -a "$CHECKIN_LOG" >> "$LOG"
     last_checkin_epoch=$now_epoch
   fi
 
   if [[ -d "$BASE" ]]; then
-    echo "[$(date -Is)] run transcribe_all_courses.sh" >> "$LOG"
-    bash "$SCRIPT" >> "$LOG" 2>&1 || true
+    if pgrep -af "bash $SCRIPT" >/dev/null 2>&1; then
+      echo "[$(date -Is)] transcribe_all already running; skip launch" >> "$LOG"
+    else
+      echo "[$(date -Is)] run transcribe_all_courses.sh (base=$BASE)" >> "$LOG"
+      bash "$SCRIPT" >> "$LOG" 2>&1 || true
+    fi
   else
     echo "[$(date -Is)] source unavailable: $BASE ; retrying" >> "$LOG"
   fi

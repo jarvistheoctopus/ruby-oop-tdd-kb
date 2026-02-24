@@ -12,8 +12,15 @@ PYTHON_BIN="${TRANSCRIBE_PYTHON:-$REPO_ROOT/.venv/bin/python}"
 [[ -x "$PYTHON_BIN" ]] || PYTHON_BIN="python3"
 
 MANIFEST="${TRANSCRIBE_MANIFEST:-$OUT_BASE/transcription_manifest.tsv}"
+LOCK_DIR="${TRANSCRIBE_LOCK_DIR:-$OUT_BASE/.transcribe_all.lock}"
 mkdir -p "$OUT_BASE"
 touch "$MANIFEST"
+
+if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+  echo "[skip] transcribe_all already running (lock: $LOCK_DIR)" | tee -a "$LOG"
+  exit 0
+fi
+trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT
 
 video_fingerprint () {
   local f="$1"
@@ -42,6 +49,17 @@ COURSES=(
   "Heuristicas de Diseño de Software con Objetos (2024)|heuristicas-diseno-software"
   "Introducción a TDD (2024)|introduccion-a-tdd"
 )
+
+COURSE_FILTER="${TRANSCRIBE_COURSES:-}" # comma-separated slugs, e.g. diseno-a-la-gorra,heuristicas-diseno-software
+course_enabled () {
+  local slug="$1"
+  [[ -z "$COURSE_FILTER" ]] && return 0
+  IFS=',' read -r -a wanted <<< "$COURSE_FILTER"
+  for w in "${wanted[@]}"; do
+    [[ "${w// /}" == "$slug" ]] && return 0
+  done
+  return 1
+}
 
 transcribe_file () {
   local video="$1" slug="$2" base safe outdir full dur total
@@ -96,6 +114,7 @@ echo "==== $(date -Is) transcribe-all resume/start ====" | tee -a "$LOG"
 
 for entry in "${COURSES[@]}"; do
   course="${entry%%|*}"; slug="${entry##*|}"
+  course_enabled "$slug" || { echo "[skip course] $slug (filter=$COURSE_FILTER)" | tee -a "$LOG"; continue; }
   [[ -d "$BASE/$course" ]] || { echo "[warn] missing directory: $BASE/$course" | tee -a "$LOG"; continue; }
   find "$BASE/$course" -type f \( -iname '*.mkv' -o -iname '*.mp4' -o -iname '*.mov' -o -iname '*.m4v' \) -print0 | while IFS= read -r -d '' file; do
     transcribe_file "$file" "$slug"
