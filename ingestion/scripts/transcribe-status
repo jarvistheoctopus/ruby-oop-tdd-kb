@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+RAW_DIR="${TRANSCRIBE_STATE_DIR:-$REPO_ROOT/ingestion/raw}"
+SUP_LOG="$RAW_DIR/transcribe_supervisor.log"
+RUN_LOG="$RAW_DIR/transcribe_all.log"
+CHECKIN_LOG="$RAW_DIR/transcribe_checkins.log"
+
+echo "== Process status =="
+pgrep -af 'transcribe_supervisor.sh|transcribe_all_courses.sh' || echo "(no transcription processes running)"
+
+echo
+if [[ -f "$SUP_LOG" ]]; then
+  echo "== Supervisor (last 15 lines) =="
+  tail -n 15 "$SUP_LOG"
+else
+  echo "Supervisor log not found: $SUP_LOG"
+fi
+
+echo
+if [[ -f "$RUN_LOG" ]]; then
+  echo "== Transcription run log (last 20 lines) =="
+  tail -n 20 "$RUN_LOG"
+else
+  echo "Run log not found: $RUN_LOG"
+fi
+
+echo
+if [[ -f "$CHECKIN_LOG" ]]; then
+  echo "== Hourly check-ins (last 10 lines) =="
+  tail -n 10 "$CHECKIN_LOG"
+else
+  echo "Check-in log not found: $CHECKIN_LOG"
+fi
+
+echo
+for d in diseno-a-la-gorra heuristicas-diseno-software introduccion-a-tdd; do
+  base="$RAW_DIR/$d"
+  full=$(find "$base" -type f -name '*.full.transcript.txt' 2>/dev/null | wc -l)
+  chunks=$(find "$base" -type f -name '*.chunk*.transcript.txt' 2>/dev/null | wc -l)
+  echo "$d: full=$full chunks=$chunks"
+done

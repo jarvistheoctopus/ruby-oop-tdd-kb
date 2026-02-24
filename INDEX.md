@@ -1,5 +1,9 @@
 # INDEX
 
+## Project
+- [Project Intention](plan/project-intention.md)
+- [Jellyfin Ingestion Plan v1](plan/jellyfin-ingestion-plan-v1.md)
+
 ## Concepts
 - [TDD: Red-Green-Refactor](concepts/tdd-red-green-refactor.md)
 - [OO Design Heuristics](concepts/oo-design-heuristics.md)

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Stopping transcription processes..."
+pkill -f transcribe_all_courses.sh || true
+pkill -f transcribe_supervisor.sh || true
+sleep 0.4
+
+remaining=$(pgrep -af 'transcribe_supervisor.sh|transcribe_all_courses.sh' || true)
+if [[ -n "$remaining" ]]; then
+  echo "Some processes still alive:"
+  echo "$remaining"
+else
+  echo "All transcription processes stopped."
+fi
