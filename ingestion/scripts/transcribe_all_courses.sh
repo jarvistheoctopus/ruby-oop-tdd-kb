@@ -3,6 +3,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+ENV_FILE="${TRANSCRIBE_ENV_FILE:-$REPO_ROOT/ingestion/transcribe.env}"
+[[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
 
 BASE="${TRANSCRIBE_SOURCE_BASE:-/mnt/10PinesCourses}"
 OUT_BASE="${TRANSCRIBE_OUT_BASE:-$REPO_ROOT/ingestion/raw}"
@@ -82,7 +84,7 @@ transcribe_file () {
     wav="$outdir/${safe}.chunk${idx}.wav"; txt="$outdir/${safe}.chunk${idx}.transcript.txt"
     [[ -s "$txt" ]] && { echo "  [skip chunk] $idx" >> "$LOG"; continue; }
 
-    ffmpeg -y -ss "$start" -t "$CHUNK" -i "$video" -ac 1 -ar 16000 "$wav" -loglevel error || { echo "  [error chunk] $idx ffmpeg" | tee -a "$LOG"; rm -f "$wav"; continue; }
+    ffmpeg -nostdin -y -ss "$start" -t "$CHUNK" -i "$video" -ac 1 -ar 16000 "$wav" -loglevel error || { echo "  [error chunk] $idx ffmpeg" | tee -a "$LOG"; rm -f "$wav"; continue; }
 
     "$PYTHON_BIN" - << PY
 from faster_whisper import WhisperModel

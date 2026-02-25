@@ -3,6 +3,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+ENV_FILE="${TRANSCRIBE_ENV_FILE:-$REPO_ROOT/ingestion/transcribe.env}"
+[[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
 
 BASE="${TRANSCRIBE_SOURCE_BASE:-/mnt/10PinesCourses}"
 SCRIPT="${TRANSCRIBE_RUN_SCRIPT:-$SCRIPT_DIR/transcribe_all_courses.sh}"

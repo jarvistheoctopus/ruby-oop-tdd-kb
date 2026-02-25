@@ -1,4 +1,4 @@
-# ruby-oop-tdd-kb
+# dojo
 
 Private knowledge base for Ruby + OOP + TDD, optimized for both humans and LLM retrieval.
 
@@ -27,11 +27,31 @@ This repository is not a transcript archive. Transcripts are raw input. The real
 - `plan/` project plans and ingestion strategy
 - `ingestion/` raw and processed learning inputs
 
+## External resources
+- **Diseño a la Gorra (code repository):** https://github.com/hernanwilkinson/disenioALaGorra
+  - Local clone: `~/code/disenioALaGorra`
+  - What it is: official repository for the *Diseño a la Gorra* webinar episodes (10Pines Academy), i.e., the code used/discussed across episodes.
+  - Why it matters here: it provides concrete, real examples to connect transcript ideas with actual Ruby/OOP/TDD design decisions while distilling KB notes.
+
 ## Workflow
 1. Capture source insight (course/book/project)
 2. Distill into note template
 3. Link to related notes
 4. Open PR for review/discussion
+
+## Transcription path config (host/VM)
+Transcription scripts read optional config from `ingestion/transcribe.env`.
+
+Quick setup:
+```bash
+cp ingestion/transcribe.env.example ingestion/transcribe.env
+```
+
+Then edit:
+- `TRANSCRIBE_SOURCE_BASE` → where course videos live (e.g. `/mnt/10PinesCourses`)
+- `TRANSCRIBE_OUT_BASE` and `TRANSCRIBE_STATE_DIR` → where transcripts/logs should be written
+
+You can still override any value per command using environment variables.
 
 ## Quality bar for notes
 Each note should be:
